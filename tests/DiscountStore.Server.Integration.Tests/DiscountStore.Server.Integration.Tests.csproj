@@ -17,8 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\DiscountRules\DiscountStore.DiscountRules.Cfo\DiscountStore.DiscountRules.BulkPurchase.csproj" />
-    <ProjectReference Include="..\..\src\DiscountRules\DiscountStore.DiscountRules.Marketing\DiscountStore.DiscountRules.BuyXGetYFree.csproj" />
     <ProjectReference Include="..\..\src\DiscountStore.Server\DiscountStore.Server.csproj" />
   </ItemGroup>
 

@@ -9,10 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DiscountRules", "DiscountRu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscountStore.Server", "src\DiscountStore.Server\DiscountStore.Server.csproj", "{5BD76B6E-1914-4664-B1FE-B2AB9340A37D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscountStore.DiscountRules.BulkPurchase", "src\DiscountRules\DiscountStore.DiscountRules.Cfo\DiscountStore.DiscountRules.BulkPurchase.csproj", "{FB67B1BC-F111-4B2F-93E8-814CD0446011}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscountStore.DiscountRules.BuyXGetYFree", "src\DiscountRules\DiscountStore.DiscountRules.Marketing\DiscountStore.DiscountRules.BuyXGetYFree.csproj", "{8A3D5F02-316F-4022-A51E-B9221982041C}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{01DFF698-EF72-41FA-95DC-F93BC3BFE3F6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{C2A9371B-8A57-474F-87E1-371595521C9A}"
@@ -21,9 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscountStore.Server.Integr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscountStore.Server.Unit.Tests", "tests\DiscountStore.Server.Unit.Tests\DiscountStore.Server.Unit.Tests.csproj", "{D40311E0-03DE-4794-AF8B-E0E67587CF98}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DiscountRules.Unit.Tests", "DiscountRules.Unit.Tests", "{B2F44F03-45DD-4112-9C0A-D7013FAC7EEA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscountStore.DiscountRules.BulkPurchase", "src\DiscountRules\DiscountStore.DiscountRules.BulkPurchase\DiscountStore.DiscountRules.BulkPurchase.csproj", "{0402ABDD-2AD2-4C25-9F08-4113DB82D9A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscountStore.DiscountRules.BulkPurchase.Unit.Tests", "tests\DiscountStore.DiscountRules.BulkPurchase.Unit.Tests\DiscountStore.DiscountRules.BulkPurchase.Unit.Tests.csproj", "{CEA96167-EF5C-4DB4-9B1D-3C78BD58D0BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscountStore.DiscountRules.BuyXGetYFree", "src\DiscountRules\DiscountStore.DiscountRules.BuyXGetYFree\DiscountStore.DiscountRules.BuyXGetYFree.csproj", "{C4ABE480-D2C8-4732-A523-D65780C4FADF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,14 +35,6 @@ Global
 		{5BD76B6E-1914-4664-B1FE-B2AB9340A37D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5BD76B6E-1914-4664-B1FE-B2AB9340A37D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5BD76B6E-1914-4664-B1FE-B2AB9340A37D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FB67B1BC-F111-4B2F-93E8-814CD0446011}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FB67B1BC-F111-4B2F-93E8-814CD0446011}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FB67B1BC-F111-4B2F-93E8-814CD0446011}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FB67B1BC-F111-4B2F-93E8-814CD0446011}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8A3D5F02-316F-4022-A51E-B9221982041C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8A3D5F02-316F-4022-A51E-B9221982041C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8A3D5F02-316F-4022-A51E-B9221982041C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8A3D5F02-316F-4022-A51E-B9221982041C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{58DC77DC-8CE9-4C59-9A5E-39F71D38D6E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{58DC77DC-8CE9-4C59-9A5E-39F71D38D6E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{58DC77DC-8CE9-4C59-9A5E-39F71D38D6E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -55,10 +43,14 @@ Global
 		{D40311E0-03DE-4794-AF8B-E0E67587CF98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D40311E0-03DE-4794-AF8B-E0E67587CF98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D40311E0-03DE-4794-AF8B-E0E67587CF98}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CEA96167-EF5C-4DB4-9B1D-3C78BD58D0BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CEA96167-EF5C-4DB4-9B1D-3C78BD58D0BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CEA96167-EF5C-4DB4-9B1D-3C78BD58D0BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CEA96167-EF5C-4DB4-9B1D-3C78BD58D0BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0402ABDD-2AD2-4C25-9F08-4113DB82D9A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0402ABDD-2AD2-4C25-9F08-4113DB82D9A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0402ABDD-2AD2-4C25-9F08-4113DB82D9A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0402ABDD-2AD2-4C25-9F08-4113DB82D9A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4ABE480-D2C8-4732-A523-D65780C4FADF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4ABE480-D2C8-4732-A523-D65780C4FADF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4ABE480-D2C8-4732-A523-D65780C4FADF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4ABE480-D2C8-4732-A523-D65780C4FADF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -67,12 +59,10 @@ Global
 		{24E6A2F9-177A-4C4F-A107-E076BE715296} = {01DFF698-EF72-41FA-95DC-F93BC3BFE3F6}
 		{28D8ECEB-1F9A-48E8-948C-B2913AB6ED41} = {01DFF698-EF72-41FA-95DC-F93BC3BFE3F6}
 		{5BD76B6E-1914-4664-B1FE-B2AB9340A37D} = {01DFF698-EF72-41FA-95DC-F93BC3BFE3F6}
-		{FB67B1BC-F111-4B2F-93E8-814CD0446011} = {28D8ECEB-1F9A-48E8-948C-B2913AB6ED41}
-		{8A3D5F02-316F-4022-A51E-B9221982041C} = {28D8ECEB-1F9A-48E8-948C-B2913AB6ED41}
 		{58DC77DC-8CE9-4C59-9A5E-39F71D38D6E7} = {C2A9371B-8A57-474F-87E1-371595521C9A}
 		{D40311E0-03DE-4794-AF8B-E0E67587CF98} = {C2A9371B-8A57-474F-87E1-371595521C9A}
-		{B2F44F03-45DD-4112-9C0A-D7013FAC7EEA} = {C2A9371B-8A57-474F-87E1-371595521C9A}
-		{CEA96167-EF5C-4DB4-9B1D-3C78BD58D0BC} = {B2F44F03-45DD-4112-9C0A-D7013FAC7EEA}
+		{0402ABDD-2AD2-4C25-9F08-4113DB82D9A9} = {28D8ECEB-1F9A-48E8-948C-B2913AB6ED41}
+		{C4ABE480-D2C8-4732-A523-D65780C4FADF} = {28D8ECEB-1F9A-48E8-948C-B2913AB6ED41}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2CD09A78-2434-436D-8E49-08739FCACE33}

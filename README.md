@@ -1,6 +1,6 @@
 # Discount Store
 
-This project is a solution for the proposed code backend-challenge.
+This project exercises the Actor Model using Akka.net.
 
 ## Table of Contents
 
@@ -13,7 +13,7 @@ This project is a solution for the proposed code backend-challenge.
 
 ## Installing .NET Core
 
- To follow the requirement to be able to run in an Unix environment, the project was developed using .NET Core 2.2.0, SDK version 2.2.1.
+ To be able to run in both Unix and Windows environment, the project was developed using .NET Core 2.2.0, SDK version 2.2.1.
 
 To install .NET Core on the Linux distribution of your choice, please refer to the [installation guide](https://dotnet.microsoft.com/download/linux-package-manager/rhel/sdk-2.2.101).
 
@@ -82,11 +82,11 @@ The client has a command line api to perform all operations requested on the cha
 
 ### Concurrency
 
-In order to achieve concurrency and immutability, the solution was designed to make use of [Actors Model](https://en.wikipedia.org/wiki/Actor_model) approach.
+In order to achieve concurrency and immutability, the solution was designed to make use of [Actor Model](https://en.wikipedia.org/wiki/Actor_model) approach.
 
-Actors Model is the way to go nowadays for object oriented based code given that this approach brings benefits for development when requirements for concurrency are at stake.
+Actor Model is the way to go nowadays for object oriented based code given that this approach brings benefits for development when requirements for concurrency are at stake.
 
-To achieve this architecture, the project uses the [Akka.NET](https://getakka.net/) library, which is the most used library on .Net community for Actors Model. This library is a port of a framework used in Java and other JVM based languages, such as Scala.
+To achieve this architecture, the project uses the [Akka.NET](https://getakka.net/) library, which is the most used library on .Net community for Actor Model. This library is a port of a framework used in Java and other JVM based languages, such as Scala.
 
 Akka delivers lock-free concurrency handling and ensures immutability inside its own structures.
 
@@ -99,13 +99,13 @@ The discounts requested on the challenge description were implemented and can se
 These examples can be found at:
  
  ```
- /src/DiscountRules/DiscountStore.DiscountRules.Cfo/
+ /src/DiscountRules/DiscountStore.DiscountRules.BulkPurchase/
  ```
  
  and
  
  ``` 
- /src/DiscountRules/DiscountStore.DiscountRules.Cfo/DiscountStore.DiscountRules.Marketing/
+ /src/DiscountRules/DiscountStore.DiscountRules.BuyXGetYFree/
  ```
 
  They are copied to application output folder automatically on project build and test.

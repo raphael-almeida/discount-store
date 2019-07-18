@@ -1,0 +1,559 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DiscountStore.Server</name>
+    </assembly>
+    <members>
+        <member name="T:DiscountStore.Server.Controllers.BasketController">
+            <summary>
+            Provide endpoints to handle requests to perform operations in a checkout basket.
+            </summary>
+        </member>
+        <member name="F:DiscountStore.Server.Controllers.BasketController._basketManagerActor">
+            <summary>
+            An instance of <see cref="T:Akka.Actor.IActorRef"/>.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Controllers.BasketController.#ctor(DiscountStore.Server.Domain.Basket.BasketManagerActorProvider)">
+            <summary>
+            Creates a new instance of <see cref="T:DiscountStore.Server.Controllers.BasketController"/>.
+            </summary>
+            <param name="basketManagerActorProvider"></param>
+        </member>
+        <member name="M:DiscountStore.Server.Controllers.BasketController.CreateBasket">
+            <summary>
+            Creates a new checkout basket.
+            </summary>
+            <returns>The id of the newly created basket.</returns>
+        </member>
+        <member name="M:DiscountStore.Server.Controllers.BasketController.AddProduct(System.Int32,DiscountStore.Server.Messages.AddProduct)">
+            <summary>
+            Puts a new product into a basket given by the basket id.
+            </summary>
+            <param name="basketId">Unique identifier of the basket to add the product.</param>
+            <param name="addProduct">An object with details of the product to be added.</param>
+            <returns>
+            A <see cref="T:System.Threading.Tasks.Task"/> wrapping an <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult"/> with the result
+            that can be: status code 404 for basket not found or product not found,
+            or status code 200 for product successfully added to the given basket id.
+            </returns>
+        </member>
+        <member name="M:DiscountStore.Server.Controllers.BasketController.GetTotalAmount(System.Int32)">
+            <summary>
+            Gets the total amount of a checkout basket given by the basket id.
+            </summary>
+            <param name="basketId">Unique identifier of the basket to get the amount.</param>
+            <returns>
+            A <see cref="T:System.Threading.Tasks.Task"/> wrapping an <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult"/> with the result,
+            which is a json object containing the items on the basket and the total amount in case of success,
+            or error status code 404, if basket not found.
+            </returns>
+        </member>
+        <member name="M:DiscountStore.Server.Controllers.BasketController.RemoveBasket(System.Int32)">
+            <summary>
+            Deletes the basket given by its id.
+            </summary>
+            <param name="basketId">Unique identifier of the basket to be deleted.</param>
+            <returns>
+            A <see cref="T:System.Threading.Tasks.Task"/> wrapping an <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult"/> with the result,
+            which is a json object containing basket deleted and a message in case of success,
+            or error status code 404, if basket not found.
+            </returns>
+        </member>
+        <member name="T:DiscountStore.Server.Domain.Basket.Basket">
+            <summary>
+            Basket representation, containing an unique identifier and a list of products.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Domain.Basket.Basket.#ctor(System.Int32)">
+            <summary>
+            Creates a new instance of a <see cref="T:DiscountStore.Server.Domain.Basket.Basket"/>.
+            </summary>
+            <param name="id">The id of the basket to be created</param>
+        </member>
+        <member name="P:DiscountStore.Server.Domain.Basket.Basket.Id">
+            <summary>
+            Gets the id of the current basket.
+            </summary>
+        </member>
+        <member name="P:DiscountStore.Server.Domain.Basket.Basket.Products">
+            <summary>
+            Gets the list of products of the current basket.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Domain.Basket.Basket.AddProduct(DiscountStore.Server.Domain.Basket.Product,System.Int32)">
+            <summary>
+            Adds one or more products to the curent basket.
+            </summary>
+            <param name="product">The <see cref="T:DiscountStore.Server.Domain.Basket.Product"/> to be added.</param>
+            <param name="quantity">Quantity of products to be added.</param>
+        </member>
+        <member name="T:DiscountStore.Server.Domain.Basket.BasketManagerActor">
+            <summary>
+            An implementation of <see cref="T:Akka.Actor.ReceiveActor"/> to handle commands related to accounts.
+            <remarks>
+            The commands available are:
+            - <see cref="T:DiscountStore.Server.Messages.CreateBasket"/> to create a new basket;
+            - <see cref="M:DiscountStore.Server.Domain.Basket.BasketManagerActor.AddProduct(DiscountStore.Server.Messages.AddProduct)"/> to add a new product to a basket;
+            - <see cref="T:DiscountStore.Server.Messages.GetTotalAmountById"/> to get the total amount of a basket;
+            - <see cref="M:DiscountStore.Server.Domain.Basket.BasketManagerActor.RemoveBasket(DiscountStore.Server.Messages.RemoveBasket)"/> to delete a basket;
+            By implementing <see cref="T:Akka.Actor.ReceiveActor"/> this class guarantees that concurrent invocations of the above operations
+            are supported through the Actor model (https://en.wikipedia.org/wiki/Actor_model) which uses the concept of 'messages'
+            and does not requrire the use of locks.
+            </remarks>
+            </summary>
+        </member>
+        <member name="F:DiscountStore.Server.Domain.Basket.BasketManagerActor._basketIdCounter">
+            <summary>
+            Internal counter to handle the basket ids. Since this is used only inside <see cref="M:DiscountStore.Server.Domain.Basket.BasketManagerActor.CreateNewBasket"/>,
+            we do not need to use locks.
+            </summary>
+        </member>
+        <member name="F:DiscountStore.Server.Domain.Basket.BasketManagerActor._discountEngineLazy">
+            <summary>
+            <see cref="T:System.Lazy`1"/> instnace of <see cref="T:DiscountStore.Server.Domain.Discount.DiscountEngine"/>.
+            </summary>
+        </member>
+        <member name="F:DiscountStore.Server.Domain.Basket.BasketManagerActor._baskets">
+            <summary>
+            <see cref="T:System.Collections.Generic.Dictionary`2"/> of the baskets currently available.
+            </summary>
+        </member>
+        <member name="F:DiscountStore.Server.Domain.Basket.BasketManagerActor._productsCatalog">
+            <summary>
+            <see cref="T:System.Collections.Generic.Dictionary`2"/> of the products currently available for purchase.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Domain.Basket.BasketManagerActor.#ctor">
+            <summary>
+            Creates a new instance of <see cref="T:DiscountStore.Server.Domain.Basket.BasketManagerActor"/> and asigns each of the messages to their respective actions.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Domain.Basket.BasketManagerActor.CreateNewBasket">
+            <summary>
+            Creates a new basket.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Domain.Basket.BasketManagerActor.AddProduct(DiscountStore.Server.Messages.AddProduct)">
+            <summary>
+            Adds a new product to a basket.
+            </summary>
+            <param name="message">The message with details of the product to be added.</param>
+        </member>
+        <member name="M:DiscountStore.Server.Domain.Basket.BasketManagerActor.GetTotalAmount(DiscountStore.Server.Messages.GetTotalAmountById)">
+            <summary>
+            Gets the total amount details of a specific basket.
+            </summary>
+            <param name="message">The message with details of the basket to get the total amount from.</param>
+        </member>
+        <member name="M:DiscountStore.Server.Domain.Basket.BasketManagerActor.RemoveBasket(DiscountStore.Server.Messages.RemoveBasket)">
+            <summary>
+            Deletes a basket.
+            </summary>
+            <param name="message">The message with details of the basket to be deleted.</param>
+        </member>
+        <member name="M:DiscountStore.Server.Domain.Basket.BasketManagerActor.InitializeDiscountEngine">
+            <summary>
+            Initializes the <see cref="T:DiscountStore.Server.Domain.Discount.DiscountEngine"/> instance.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:DiscountStore.Server.Domain.Basket.BasketManagerActorProvider">
+            <summary>
+            Delegate to get the actor manager instance on the Controller class.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:DiscountStore.Server.Domain.Basket.Product">
+            <summary>
+            Represents a product to be used in a basket.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Domain.Basket.Product.#ctor(System.String,System.String,System.Decimal)">
+            <summary>
+            Creates a new instance of a <see cref="T:DiscountStore.Server.Domain.Basket.Product"/>.
+            </summary>
+            <param name="code">The product code.</param>
+            <param name="name">The product name.</param>
+            <param name="price">The product price.</param>
+        </member>
+        <member name="P:DiscountStore.Server.Domain.Basket.Product.Code">
+            <summary>
+            Gets the product code.
+            </summary>
+        </member>
+        <member name="P:DiscountStore.Server.Domain.Basket.Product.Name">
+            <summary>
+            Gets the product name.
+            </summary>
+        </member>
+        <member name="P:DiscountStore.Server.Domain.Basket.Product.Price">
+            <summary>
+            Gets or sets the product price.
+            This property has the setter available so that discount rules can change the price of this <see cref="T:DiscountStore.Server.Domain.Basket.Product"/>.
+            </summary>
+        </member>
+        <member name="T:DiscountStore.Server.Domain.Discount.DiscountEngine">
+            <summary>
+            Represents a discount engine.
+            <remarks>
+            This class is responsible for loading all <see cref="T:DiscountStore.Server.Domain.Discount.IDiscountRule"/> instances and applying all of them to the products list of a basket.
+            It exposes a public method, <see cref="M:DiscountStore.Server.Domain.Discount.DiscountEngine.CalculateTotalAmount(System.Collections.Generic.IList{DiscountStore.Server.Domain.Basket.Product})"/> which will calculate all possible discounts on the list of products of a basket.
+            </remarks> 
+            </summary>
+        </member>
+        <member name="P:DiscountStore.Server.Domain.Discount.DiscountEngine.DiscountRules">
+            <summary>
+            Gets list of <see cref="T:DiscountStore.Server.Domain.Discount.IDiscountRule"/>.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Domain.Discount.DiscountEngine.#ctor">
+            <summary>
+            Creates a new instance of <see cref="T:DiscountStore.Server.Domain.Discount.DiscountEngine"/>.
+            Injects the <see cref="T:DiscountStore.Server.Domain.Discount.IDiscountRule"/> instances into <see cref="P:DiscountStore.Server.Domain.Discount.DiscountEngine.DiscountRules"/> property.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Domain.Discount.DiscountEngine.CalculateTotalAmount(System.Collections.Generic.IList{DiscountStore.Server.Domain.Basket.Product})">
+            <summary>
+            Calculates the total amount of a list of products.
+            </summary>
+            <param name="products"></param>
+            <returns>The amount with the discount(s) applied.</returns>
+        </member>
+        <member name="M:DiscountStore.Server.Domain.Discount.DiscountEngine.GetDiscountAssemblies">
+            <summary>
+            Gets the list of <see cref="T:System.Reflection.Assembly"/> that implements <see cref="T:DiscountStore.Server.Domain.Discount.IDiscountRule"/> on the current directory.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:DiscountStore.Server.Domain.Discount.IDiscountRule">
+            <summary>
+            Interface to be implemented on Discount Rule Assemblies.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Domain.Discount.IDiscountRule.ApplyDiscount(System.Collections.Generic.IList{DiscountStore.Server.Domain.Basket.Product})">
+            <summary>
+            Applies the discount of a specific discount rule in the list of products.
+            </summary>
+            <param name="products">The list of products to apply the discount on.</param>
+        </member>
+        <member name="T:DiscountStore.Server.Messages.AddProduct">
+            <summary>
+            Message to add a new product to a basket.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Messages.AddProduct.#ctor(System.String,System.Int32,System.Int32)">
+            <summary>
+            Creates a new instance of <see cref="T:DiscountStore.Server.Messages.AddProduct"/> message.
+            </summary>
+            <param name="productCode">The code of the product to be added.</param>
+            <param name="quantity">The quantity of the product to be added</param>
+            <param name="basketId">The basket Id of the product to be added.</param>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.AddProduct.Quantity">
+            <summary>
+            Gets the quantity of the product to be added.
+            </summary>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.AddProduct.BasketId">
+            <summary>
+            Gets the basket id of the product to be added.
+            </summary>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.AddProduct.ProductCode">
+            <summary>
+            Gets the product code to be added.
+            </summary>
+        </member>
+        <member name="T:DiscountStore.Server.Messages.BasketDeleted">
+            <summary>
+            Message to delete a basket.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Messages.BasketDeleted.#ctor(System.Int32)">
+            <summary>
+            Creates a new instance of <see cref="T:DiscountStore.Server.Messages.BasketDeleted"/>.
+            </summary>
+            <param name="id">Id of the basket to be deleted.</param>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.BasketDeleted.Message">
+            <summary>
+            Gets the message of a basket deleted.
+            </summary>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.BasketDeleted.Id">
+            <summary>
+            Gets the id of the basket to be deleted.
+            </summary>
+        </member>
+        <member name="T:DiscountStore.Server.Messages.BasketNotFound">
+            <summary>
+            Message of a basket not found.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Messages.BasketNotFound.#ctor(System.Int32)">
+            <summary>
+            Creates a new instance of <see cref="T:DiscountStore.Server.Messages.BasketNotFound"/>.
+            </summary>
+            <param name="id"></param>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.BasketNotFound.Message">
+            <summary>
+            Gets a text of a basket not found.
+            </summary>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.BasketNotFound.Id">
+            <summary>
+            Gets the id of a basket not found.
+            </summary>
+        </member>
+        <member name="T:DiscountStore.Server.Messages.CreateBasket">
+            <summary>
+            Message to create a new basket
+            </summary>
+        </member>
+        <member name="T:DiscountStore.Server.Messages.CreateBasketResponse">
+            <summary>
+            Message to a basket created.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Messages.CreateBasketResponse.#ctor(System.Int32)">
+            <summary>
+            Creates a new instance of <see cref="T:DiscountStore.Server.Messages.CreateBasketResponse"/>.
+            </summary>
+            <param name="basketId"></param>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.CreateBasketResponse.BasketId">
+            <summary>
+            Gets the id of the basket created.
+            </summary>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.CreateBasketResponse.Message">
+            <summary>
+            Gets the text of the basket created.
+            </summary>
+        </member>
+        <member name="T:DiscountStore.Server.Messages.GetTotalAmountById">
+            <summary>
+            Message to get a total amount by id.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Messages.GetTotalAmountById.#ctor(System.Int32)">
+            <summary>
+            Creates a new instance of <see cref="T:DiscountStore.Server.Messages.GetTotalAmountById"/> message.
+            </summary>
+            <param name="basketId">The id of the basket to get the total amount.</param>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.GetTotalAmountById.BasketId">
+            <summary>
+            Gets the id of the basket to get the total amount from.
+            </summary>
+        </member>
+        <member name="T:DiscountStore.Server.Messages.ProductAddedToBasket">
+            <summary>
+            Message to inform that a product has been added to basket.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Messages.ProductAddedToBasket.#ctor(System.Int32)">
+            <summary>
+            Creates a new instance of <see cref="T:DiscountStore.Server.Messages.ProductAddedToBasket"/>
+            </summary>
+            <param name="basketId">Basket unique identification</param>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.ProductAddedToBasket.Message">
+            <summary>
+            Gets the text message of a product added to the basket.
+            </summary>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.ProductAddedToBasket.BasketId">
+            <summary>
+            Gets the basket identification.
+            </summary>
+        </member>
+        <member name="T:DiscountStore.Server.Messages.ProductNotFound">
+            <summary>
+            Message of a product not found.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Messages.ProductNotFound.#ctor(System.String)">
+            <summary>
+            Creates a new instance of <see cref="T:DiscountStore.Server.Messages.ProductNotFound"/>.
+            </summary>
+            <param name="code">Code of the product not found.</param>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.ProductNotFound.Code">
+            <summary>
+            Gets the code of the product not found.
+            </summary>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.ProductNotFound.Message">
+            <summary>
+            Gets the text message of a product not found.
+            </summary>
+        </member>
+        <member name="T:DiscountStore.Server.Messages.RemoveBasket">
+            <summary>
+            Message to remove a basket.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Messages.RemoveBasket.#ctor(System.Int32)">
+            <summary>
+            Creates a new instance of <see cref="T:DiscountStore.Server.Messages.RemoveBasket"/>.
+            </summary>
+            <param name="id">The id of the basket to be removed.</param>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.RemoveBasket.Id">
+            <summary>
+            Gets the id of the basket to be removed.
+            </summary>
+        </member>
+        <member name="T:DiscountStore.Server.Messages.TotalAmountResponse">
+            <summary>
+            Message to get the total amount response.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Messages.TotalAmountResponse.#ctor(System.Collections.Generic.IEnumerable{System.String},System.Decimal)">
+            <summary>
+            Creates a new instance of <see cref="T:DiscountStore.Server.Messages.TotalAmountResponse"/>
+            </summary>
+            <param name="items">List of items (products) of a basket.</param>
+            <param name="total">Total amount of a basket.</param>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.TotalAmountResponse.Items">
+            <summary>
+            Gets the list of items of the basket.
+            </summary>
+        </member>
+        <member name="P:DiscountStore.Server.Messages.TotalAmountResponse.Total">
+            <summary>
+            Gets the total amount of the basket.
+            </summary>
+        </member>
+        <member name="T:DiscountStore.Server.Program">
+            <summary>
+            Wraps the execution of the server application.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Program.Main(System.String[])">
+            <summary>
+            Entry point of the server application.
+            </summary>
+            <param name="args"></param>
+        </member>
+        <member name="M:DiscountStore.Server.Program.CreateWebHostBuilder(System.String[])">
+            <summary>
+            Creates an instance of <see cref="T:Microsoft.AspNetCore.Hosting.IWebHostBuilder"/>.
+            </summary>
+            <param name="args">An array of <see cref="T:System.String"/> with options.</param>
+            <returns>An instance of <see cref="T:Microsoft.AspNetCore.Hosting.IWebHostBuilder"/>.</returns>
+        </member>
+        <member name="T:DiscountStore.Server.Startup">
+            <summary>
+            Sets up the startup of the ASP.NET MVC Core application.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Startup.#ctor(Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Creates a new instance of <see cref="T:DiscountStore.Server.Startup"/>.
+            </summary>
+            <param name="configuration">An instance of <see cref="T:Microsoft.Extensions.Configuration.IConfiguration"/>.</param>
+        </member>
+        <member name="P:DiscountStore.Server.Startup.Configuration">
+            <summary>
+            Gets an instance of <see cref="T:Microsoft.Extensions.Configuration.IConfiguration"/>.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Startup.ConfigureServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Adds services to the DI composition container.
+            </summary>
+            <remarks>
+            This method gets called by the runtime.
+            </remarks>
+            <param name="services">An instance of <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.</param>
+        </member>
+        <member name="M:DiscountStore.Server.Startup.Configure(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.AspNetCore.Hosting.IHostingEnvironment,Microsoft.AspNetCore.Hosting.IApplicationLifetime)">
+            <summary>
+            Configures the HTTP request pipeline for the application.
+            </summary>
+            <remarks>
+            This method gets called by the runtime.
+            </remarks>
+            <param name="app">An instance of <see cref="T:Microsoft.AspNetCore.Builder.IApplicationBuilder"/>.</param>
+            <param name="env">An instance of <see cref="T:Microsoft.AspNetCore.Hosting.IHostingEnvironment"/>.</param>
+            <param name="lifetime">An instance of <see cref="T:Microsoft.AspNetCore.Hosting.IApplicationLifetime"/>.</param>
+        </member>
+        <member name="T:DiscountStore.Server.Swagger.AddProductExamples">
+            <summary>
+            <see cref="T:Swashbuckle.AspNetCore.Filters.IExamplesProvider"/> implementation to provide <see cref="T:DiscountStore.Server.Messages.AddProduct"/> examples.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Swagger.AddProductExamples.GetExamples">
+            <inheritdoc />
+        </member>
+        <member name="T:DiscountStore.Server.Swagger.BasketDeletedExample">
+            <summary>
+            <see cref="T:Swashbuckle.AspNetCore.Filters.IExamplesProvider"/> implementation to provide <see cref="T:DiscountStore.Server.Messages.BasketDeleted"/> examples.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Swagger.BasketDeletedExample.GetExamples">
+            <inheritdoc />
+        </member>
+        <member name="T:DiscountStore.Server.Swagger.BasketNotFoundExample">
+            <summary>
+            <see cref="T:Swashbuckle.AspNetCore.Filters.IExamplesProvider"/> implementation to provide <see cref="T:DiscountStore.Server.Messages.BasketNotFound"/> examples.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Swagger.BasketNotFoundExample.GetExamples">
+            <inheritdoc />
+        </member>
+        <member name="T:DiscountStore.Server.Swagger.CreateBasketResponseExample">
+            <summary>
+            <see cref="T:Swashbuckle.AspNetCore.Filters.IExamplesProvider"/> implementation to provide <see cref="T:DiscountStore.Server.Messages.CreateBasketResponse"/> examples.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Swagger.CreateBasketResponseExample.GetExamples">
+            <inheritdoc />
+        </member>
+        <member name="T:DiscountStore.Server.Swagger.GetTotalAmountByIdExamples">
+            <summary>
+            <see cref="T:Swashbuckle.AspNetCore.Filters.IExamplesProvider"/> implementation to provide <see cref="T:DiscountStore.Server.Messages.GetTotalAmountById"/> examples.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Swagger.GetTotalAmountByIdExamples.GetExamples">
+            <inheritdoc />
+        </member>
+        <member name="T:DiscountStore.Server.Swagger.ProductAddedToBasketExample">
+            <summary>
+            <see cref="T:Swashbuckle.AspNetCore.Filters.IExamplesProvider"/> implementation to provide <see cref="T:DiscountStore.Server.Messages.ProductAddedToBasket"/> examples.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Swagger.ProductAddedToBasketExample.GetExamples">
+            <inheritdoc />
+        </member>
+        <member name="T:DiscountStore.Server.Swagger.ProductNotFoundExample">
+            <summary>
+            <see cref="T:Swashbuckle.AspNetCore.Filters.IExamplesProvider"/> implementation to provide <see cref="T:DiscountStore.Server.Messages.ProductNotFound"/> examples.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Swagger.ProductNotFoundExample.GetExamples">
+            <inheritdoc />
+        </member>
+        <member name="T:DiscountStore.Server.Swagger.RemoveBasketExample">
+            <summary>
+            <see cref="T:Swashbuckle.AspNetCore.Filters.IExamplesProvider"/> implementation to porvide <see cref="T:DiscountStore.Server.Messages.RemoveBasket"/> examples.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Swagger.RemoveBasketExample.GetExamples">
+            <inheritdoc />
+        </member>
+        <member name="T:DiscountStore.Server.Swagger.TotalAmountResponseExample">
+            <summary>
+            <see cref="T:Swashbuckle.AspNetCore.Filters.IExamplesProvider"/> implementation to provide <see cref="T:DiscountStore.Server.Messages.TotalAmountResponse"/> examples.
+            </summary>
+        </member>
+        <member name="M:DiscountStore.Server.Swagger.TotalAmountResponseExample.GetExamples">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>
